@@ -115,4 +115,4 @@ class ViewHistory(models.Model):
         return f'ViewHistory: {self.viewed_at}'
 
     class Meta:
-        ordering = ['-findings_date']
+        ordering = ['-viewed_at']
