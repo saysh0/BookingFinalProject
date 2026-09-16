@@ -1,22 +1,38 @@
+from typing import Any
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 
 User = get_user_model()
 
+
 class UserCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для регистрации пользователя / User registration serializer.
+
+    Принимает username, email, password и group (Landlord/Tenant).
+    Хеширует пароль и назначает группу при создании.
+
+    Accepts username, email, password and group (Landlord/Tenant).
+    Hashes password and assigns group on creation.
+    """
     GROUP_CHOICES = [
         ('Landlord', 'Арендодатель'),
         ('Tenant', 'Арендатор'),
     ]
 
     group = serializers.ChoiceField(choices=GROUP_CHOICES, write_only=True)
+
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'group')
         extra_kwargs = {'password': {'write_only': True}}
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> User:
+        """
+        Создаёт пользователя с хешированным паролем и назначает группу.
+        Creates user with hashed password and assigns group.
+        """
         password = validated_data.pop('password')
         group_name = validated_data.pop('group')
         user = User(**validated_data)
@@ -28,6 +44,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для чтения данных пользователя / User read serializer.
+
+    Возвращает основные данные пользователя без пароля.
+    Returns basic user data without password.
+    """
+
     class Meta:
         model = User
         fields = ('id', 'username', 'email')
