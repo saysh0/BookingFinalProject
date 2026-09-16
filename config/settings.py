@@ -172,6 +172,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 }
 
 LOGGING = {
@@ -226,3 +227,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API для системы аренды жилья',
     'VERSION': '1.0.0',
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

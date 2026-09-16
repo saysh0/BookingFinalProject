@@ -1,5 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from bookings.models import Booking
 from bookings.serializers import BookingSerializer
 from users.permissions import IsOwnerOrReadOnly
@@ -24,3 +27,23 @@ class BookingViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update', 'destroy']:
             return [IsOwnerOrReadOnly()]
         return [permissions.IsAuthenticated()]
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk):
+        booking = self.get_object()
+        if booking.listing.owner == request.user:
+            booking.status = Booking.BookingStatus.APPROVED
+            booking.save()
+            return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
+        return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk):
+        booking = self.get_object()
+        if booking.listing.owner == request.user:
+            booking.status = Booking.BookingStatus.REJECTED
+            booking.save()
+            return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
+        return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+
+

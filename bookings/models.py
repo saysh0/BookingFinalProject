@@ -15,7 +15,7 @@ class Booking(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.PROTECT)
     date_from = models.DateField()
     date_to = models.DateField()
-    status = models.CharField(choices=BookingStatus.choices, max_length=15)
+    status = models.CharField(choices=BookingStatus.choices, max_length=15, default=BookingStatus.IN_PROGRESS)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
