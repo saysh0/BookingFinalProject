@@ -9,6 +9,7 @@ from bookings.models import Booking
 from bookings.serializers import BookingSerializer
 from users.permissions import IsOwnerOrReadOnly
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from django.utils import timezone
 
 @extend_schema(tags=['Bookings'])
 class BookingViewSet(viewsets.ModelViewSet):
@@ -111,3 +112,24 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking.save()
             return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
         return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+
+    @extend_schema(
+        summary='Отменить бронирование / Cancel booking',
+        description='Отменяет бронирование. Только до даты заезда. / Cancels booking. Only before check-in date.'
+    )
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel(self, request: Request, pk: int | None = None) -> Response:
+        """
+        Отменяет бронирование / Cancels booking.
+
+        Доступно только арендатору до даты заезда.
+        Available only to tenant before check-in date.
+        """
+        booking = self.get_object()
+        if booking.tenant != request.user:
+            return Response({'error': 'You are not the tenant'}, status=status.HTTP_403_FORBIDDEN)
+        if booking.date_from <= timezone.now().date():
+            return Response({'error': 'Cannot cancel after check-in date'}, status=status.HTTP_400_BAD_REQUEST)
+        booking.status = Booking.BookingStatus.REJECTED
+        booking.save()
+        return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)

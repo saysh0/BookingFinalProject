@@ -10,7 +10,10 @@ from history.models import ViewHistory, SearchHistory
 from listings.models import Listing, ListingImage
 from listings.serializers import ListingSerializer, ListingImageSerializer
 from users.permissions import IsLandlord, IsOwnerOrReadOnly
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from listings.filters import ListingFilter
+from django.db.models import Count, QuerySet
+
 
 @extend_schema(tags=['Listings'])
 class ListingViewSet(viewsets.ModelViewSet):
@@ -26,13 +29,21 @@ class ListingViewSet(viewsets.ModelViewSet):
     Only landlords can create and edit listings.
     """
 
-    queryset = Listing.objects.filter(is_active=True)
     serializer_class = ListingSerializer
     permission_classes = [IsLandlord, IsOwnerOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['housing_type', 'rooms', 'location']
+    filterset_class = ListingFilter
     search_fields = ['title', 'description', 'location']
-    ordering_fields = ['created_at', 'price', 'rooms']
+    ordering_fields = ['created_at', 'price', 'rooms', 'views_count']
+    queryset = Listing.objects.none()
+
+    def get_queryset(self) -> QuerySet:
+        """
+        Возвращает активные объявления с количеством просмотров.
+        Returns active listings with view count annotation.
+        """
+        from django.db.models import Count
+        return Listing.objects.filter(is_active=True).annotate(views_count=Count('views'))
 
     def perform_create(self, serializer: Any) -> None:
         """
@@ -63,9 +74,16 @@ class ListingViewSet(viewsets.ModelViewSet):
                              description='Поиск по названию, описанию и локации / Search by title, description and location',
                              required=False, type=str),
             OpenApiParameter(name='housing_type', description='Тип жилья / Housing type', required=False, type=str),
-            OpenApiParameter(name='rooms', description='Количество комнат / Number of rooms', required=False, type=int),
+            OpenApiParameter(name='price_min', description='Минимальная цена / Minimum price', required=False,
+                             type=float),
+            OpenApiParameter(name='price_max', description='Максимальная цена / Maximum price', required=False,
+                             type=float),
+            OpenApiParameter(name='rooms_min', description='Минимальное количество комнат / Minimum rooms',
+                             required=False, type=int),
+            OpenApiParameter(name='rooms_max', description='Максимальное количество комнат / Maximum rooms',
+                             required=False, type=int),
             OpenApiParameter(name='ordering',
-                             description='Сортировка / Ordering: price, -price, created_at, -created_at',
+                             description='Сортировка / Ordering: price, -price, created_at, -created_at, views_count, -views_count',
                              required=False, type=str),
         ]
     )
