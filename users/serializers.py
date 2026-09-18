@@ -2,6 +2,7 @@ from typing import Any
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.contrib.auth.models import Group
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -54,3 +55,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email')
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Кастомный сериализатор для получения JWT токена / Custom JWT token serializer.
+
+    Использует email вместо username для аутентификации.
+    Uses email instead of username for authentication.
+    """
+    username_field = 'email'

@@ -5,6 +5,7 @@ from bookings.models import Booking
 from listings.serializers import ListingSerializer
 from django.contrib.auth import get_user_model
 from users.serializers import UserSerializer
+from listings.models import Listing
 
 User = get_user_model()
 
@@ -18,10 +19,15 @@ class BookingSerializer(serializers.ModelSerializer):
     """
     tenant = UserSerializer(read_only=True)
     listing = ListingSerializer(read_only=True)
+    listing_id = serializers.PrimaryKeyRelatedField(
+        queryset=Listing.objects.all(),
+        source='listing',
+        write_only=True
+    )
 
     class Meta:
         model = Booking
-        fields = ('id', 'tenant', 'listing', 'status', 'date_from', 'date_to', 'created_at', 'updated_at')
+        fields = ('id', 'tenant', 'listing', 'listing_id', 'status', 'date_from', 'date_to', 'created_at', 'updated_at')
         extra_kwargs = {'status': {'read_only': True}}
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:

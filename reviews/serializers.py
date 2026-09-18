@@ -3,6 +3,7 @@ from users.serializers import UserSerializer
 from django.contrib.auth import get_user_model
 from listings.serializers import ListingSerializer
 from reviews.models import Review
+from listings.models import Listing
 
 User = get_user_model()
 
@@ -16,8 +17,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
     author = UserSerializer(read_only=True)
     listing = ListingSerializer(read_only=True)
+    listing_id = serializers.PrimaryKeyRelatedField(
+        queryset=Listing.objects.all(),
+        source='listing',
+        write_only=True
+    )
 
     class Meta:
         model = Review
-        fields = ('id', 'author', 'listing', 'rating', 'text', 'created_at')
+        fields = ('id', 'author', 'listing', 'listing_id', 'rating', 'text', 'created_at')
         extra_kwargs = {'created_at': {'read_only': True}}

@@ -10,6 +10,8 @@ from bookings.serializers import BookingSerializer
 from listings.serializers import ListingSerializer
 from users.serializers import UserCreateSerializer, UserSerializer
 from drf_spectacular.utils import extend_schema
+from rest_framework_simplejwt.views import TokenObtainPairView
+from users.serializers import CustomTokenObtainPairSerializer
 
 
 @extend_schema(tags=['Users'])
@@ -70,3 +72,13 @@ class UserViewSet(viewsets.ModelViewSet):
                 Booking.objects.filter(listing__owner=user), many=True
             ).data,
         })
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Кастомный эндпоинт для получения JWT токена / Custom JWT token endpoint.
+
+    Принимает email и пароль вместо username и пароля.
+    Accepts email and password instead of username and password.
+    """
+    serializer_class = CustomTokenObtainPairSerializer
