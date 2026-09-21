@@ -30,7 +30,7 @@ class ViewHistory(models.Model):
     Saves listing view information to display popular listings.
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    listing = models.ForeignKey(Listing, on_delete=models.PROTECT)
+    listing = models.ForeignKey(Listing, on_delete=models.PROTECT, related_name='views')
     viewed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

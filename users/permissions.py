@@ -53,3 +53,40 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.owner == request.user
+
+
+class IsTenant(permissions.BasePermission):
+    """
+    Разрешение для арендаторов / Tenant permission.
+
+    Чтение доступно всем, запись только арендаторам.
+    Read access for all, write access only for tenants.
+    """
+
+    def has_permission(self, request, view) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_authenticated and request.user.groups.filter(name='Tenant').exists()
+    def has_object_permission(self, request, view, obj) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.tenant == request.user and request.user.groups.filter(name='Tenant').exists()
+
+
+class IsSelfOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj == request.user
+
+
+class IsTenantOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.tenant == request.user

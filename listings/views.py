@@ -12,7 +12,7 @@ from listings.serializers import ListingSerializer, ListingImageSerializer
 from users.permissions import IsLandlord, IsOwnerOrReadOnly
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from listings.filters import ListingFilter
-from django.db.models import Count, QuerySet
+from django.db.models import QuerySet
 
 
 @extend_schema(tags=['Listings'])

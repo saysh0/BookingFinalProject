@@ -39,25 +39,35 @@ class BookingSerializer(serializers.ModelSerializer):
         - даты не в прошлом
         - длительность не более 30 дней
         - отсутствие пересечений с существующими бронированиями
+        - арендатор не является владельцем объявления
 
         Checks:
         - check-in date is before check-out date
         - dates are not in the past
         - duration is not more than 30 days
         - no overlap with existing bookings
+        - tenant is not the listing owner
         """
         if data['date_from'] >= data['date_to']:
             raise serializers.ValidationError('Date must be after date')
+
         if data['date_from'] < timezone.now().date():
             raise serializers.ValidationError("Date can't be in the past")
+
         duration = data['date_to'] - data['date_from']
         if duration.days > 30:
             raise serializers.ValidationError('Date must be 30 days or less')
+
         overlapping = Booking.objects.filter(
             listing=data['listing'],
             date_from__lt=data['date_to'],
             date_to__gt=data['date_from']
-        )
+        ).exclude(status=Booking.BookingStatus.REJECTED)
+
         if overlapping.exists():
             raise serializers.ValidationError('These dates are already taken')
+
+        request = self.context.get('request')
+        if request and request.user == data['listing'].owner:
+            raise serializers.ValidationError('You cant book your own listing')
         return data

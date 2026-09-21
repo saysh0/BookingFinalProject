@@ -8,6 +8,7 @@ from rest_framework.serializers import Serializer
 from bookings.models import Booking
 from bookings.serializers import BookingSerializer
 from listings.serializers import ListingSerializer
+from users.permissions import IsSelfOrReadOnly
 from users.serializers import UserCreateSerializer, UserSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -51,6 +52,8 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         if self.action == 'create':
             return [permissions.AllowAny()]
+        if self.action in ('update', 'partial_update', 'destroy'):
+            return [permissions.IsAuthenticated(), IsSelfOrReadOnly()]
         return [permissions.IsAuthenticated()]
 
     @extend_schema(
@@ -68,9 +71,7 @@ class UserViewSet(viewsets.ModelViewSet):
             'user': UserSerializer(user).data,
             'listings': ListingSerializer(user.listings.all(), many=True).data,
             'bookings_as_tenant': BookingSerializer(user.bookings.all(), many=True).data,
-            'bookings_as_landlord': BookingSerializer(
-                Booking.objects.filter(listing__owner=user), many=True
-            ).data,
+            'bookings_as_landlord': BookingSerializer(Booking.objects.filter(listing__owner=user), many=True).data,
         })
 
 

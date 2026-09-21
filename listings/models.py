@@ -21,7 +21,7 @@ class Listing(models.Model):
         HOUSE = 'house', 'дом'
         STUDIO = 'studio', 'студия'
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='listings')
     title = models.CharField(max_length=60)
     location = models.CharField(max_length=60)
     description = models.TextField()
@@ -38,6 +38,12 @@ class Listing(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['location'], name='listing_location_idx'),
+            models.Index(fields=['is_active', 'housing_type'], name='listing_active_type_idx'),
+            models.Index(fields=['location', 'is_active'], name='listing_location_active_idx'),
+            models.Index(fields=['-created_at'], name='listing_created_at_idx'),
+        ]
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
 

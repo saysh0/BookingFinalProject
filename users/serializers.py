@@ -22,7 +22,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         ('Tenant', 'Арендатор'),
     ]
 
-    group = serializers.ChoiceField(choices=GROUP_CHOICES, write_only=True)
+    groups = serializers.MultipleChoiceField(choices=GROUP_CHOICES, write_only=True)
 
     class Meta:
         model = User
@@ -35,11 +35,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
         Creates user with hashed password and assigns group.
         """
         password = validated_data.pop('password')
-        group_name = validated_data.pop('group')
+        group_names = validated_data.pop('groups')
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        group = Group.objects.get(name=group_name)
+        for group_name in group_names:
+            group, _ = Group.objects.get_or_create(name=group_name)
         user.groups.add(group)
         return user
 

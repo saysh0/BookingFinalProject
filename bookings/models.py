@@ -19,8 +19,9 @@ class Booking(models.Model):
         IN_PROGRESS = 'in_progress', 'в процессе'
         APPROVED = 'approved', 'одобрено'
         REJECTED = 'rejected', 'отклоненно'
+        CANCELLED = 'cancelled', 'отменено арендатором'
 
-    tenant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    tenant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='bookings')
     listing = models.ForeignKey(Listing, on_delete=models.PROTECT)
     date_from = models.DateField()
     date_to = models.DateField()
@@ -39,5 +40,9 @@ class Booking(models.Model):
     class Meta:
         unique_together = [['tenant', 'listing', 'date_from', 'date_to']]
         ordering = ['-date_from', '-date_to']
+        indexes = [
+            models.Index(fields=['listing', 'date_from', 'date_to'], name='booking_listing_dates_idx'),
+            models.Index(fields=['tenant', 'status'], name='booking_tenant_status_idx'),
+        ]
         verbose_name = 'Бронирование'
         verbose_name_plural = 'Бронирования'

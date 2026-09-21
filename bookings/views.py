@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.db.models import QuerySet
 from bookings.models import Booking
 from bookings.serializers import BookingSerializer
-from users.permissions import IsOwnerOrReadOnly
+from users.permissions import IsTenantOrReadOnly
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.utils import timezone
 
@@ -72,7 +72,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         Update and delete only for booking owner.
         """
         if self.action in ['update', 'partial_update', 'destroy']:
-            return [IsOwnerOrReadOnly()]
+            return [IsTenantOrReadOnly()]
         return [permissions.IsAuthenticated()]
 
     @extend_schema(
@@ -130,6 +130,6 @@ class BookingViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You are not the tenant'}, status=status.HTTP_403_FORBIDDEN)
         if booking.date_from <= timezone.now().date():
             return Response({'error': 'Cannot cancel after check-in date'}, status=status.HTTP_400_BAD_REQUEST)
-        booking.status = Booking.BookingStatus.REJECTED
+        booking.status = Booking.BookingStatus.CANCELLED
         booking.save()
         return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
