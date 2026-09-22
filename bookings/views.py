@@ -10,6 +10,7 @@ from bookings.serializers import BookingSerializer
 from users.permissions import IsTenantOrReadOnly
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.utils import timezone
+from __future__ import annotations
 
 @extend_schema(tags=['Bookings'])
 class BookingViewSet(viewsets.ModelViewSet):
@@ -66,7 +67,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         """
         serializer.save(tenant=self.request.user)
 
-    def get_permissions(self) -> list[Any]:
+    def get_permissions(self):
         """
         Изменение и удаление только для владельца бронирования.
         Update and delete only for booking owner.
