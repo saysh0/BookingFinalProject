@@ -42,6 +42,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         if not booking.exists():
             raise serializers.ValidationError('Booking does not exist')
+
+        if Review.objects.filter(author=self.context['request'].user, listing=data['listing']).exists():
+            raise serializers.ValidationError('You already reviewed this listing')
         return data
 
 

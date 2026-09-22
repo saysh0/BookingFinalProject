@@ -88,11 +88,16 @@ class BookingViewSet(viewsets.ModelViewSet):
         Available only to listing owner.
         """
         booking = self.get_object()
-        if booking.listing.owner == request.user:
-            booking.status = Booking.BookingStatus.APPROVED
-            booking.save()
-            return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
-        return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+        if booking.listing.owner != request.user:
+            return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+
+        if booking.status != Booking.BookingStatus.IN_PROGRESS:
+            return Response({'error': 'Booking is not in progress'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.status = Booking.BookingStatus.APPROVED
+        booking.save()
+        return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
+
 
     @extend_schema(
         summary='Отклонить бронирование / Reject booking',
@@ -107,11 +112,16 @@ class BookingViewSet(viewsets.ModelViewSet):
         Available only to listing owner.
         """
         booking = self.get_object()
-        if booking.listing.owner == request.user:
-            booking.status = Booking.BookingStatus.REJECTED
-            booking.save()
-            return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
-        return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+        if booking.listing.owner != request.user:
+            return Response({'error': 'You are not the owner'}, status=status.HTTP_403_FORBIDDEN)
+
+        if booking.status != Booking.BookingStatus.IN_PROGRESS:
+            return Response({'error': 'Booking is not in progress'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.status = Booking.BookingStatus.REJECTED
+        booking.save()
+        return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)
+
 
     @extend_schema(
         summary='Отменить бронирование / Cancel booking',
@@ -128,8 +138,13 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking = self.get_object()
         if booking.tenant != request.user:
             return Response({'error': 'You are not the tenant'}, status=status.HTTP_403_FORBIDDEN)
+
         if booking.date_from <= timezone.now().date():
             return Response({'error': 'Cannot cancel after check-in date'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if booking.status not in (Booking.BookingStatus.IN_PROGRESS, Booking.BookingStatus.APPROVED):
+            return Response({'error': 'Booking is not in progress'}, status=status.HTTP_400_BAD_REQUEST)
+
         booking.status = Booking.BookingStatus.CANCELLED
         booking.save()
         return Response(BookingSerializer(booking).data, status=status.HTTP_200_OK)

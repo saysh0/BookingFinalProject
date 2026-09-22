@@ -26,22 +26,26 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'group')
+        fields = ('username', 'email', 'password', 'groups')
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate_groups(self, value):
+        """Проверяет что выбранные группы существуют / Validates that selected groups exist."""
+        valid_groups = ['Landlord', 'Tenant']
+        for group in value:
+            if group not in valid_groups:
+                raise serializers.ValidationError(f'Invalid group: {group}')
+        return value
+
     def create(self, validated_data: dict[str, Any]) -> User:
-        """
-        Создаёт пользователя с хешированным паролем и назначает группу.
-        Creates user with hashed password and assigns group.
-        """
         password = validated_data.pop('password')
         group_names = validated_data.pop('groups')
         user = User(**validated_data)
         user.set_password(password)
         user.save()
         for group_name in group_names:
-            group, _ = Group.objects.get_or_create(name=group_name)
-        user.groups.add(group)
+            group = Group.objects.get(name=group_name)
+            user.groups.add(group)
         return user
 
 

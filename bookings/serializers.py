@@ -62,7 +62,7 @@ class BookingSerializer(serializers.ModelSerializer):
             listing=data['listing'],
             date_from__lt=data['date_to'],
             date_to__gt=data['date_from']
-        ).exclude(status=Booking.BookingStatus.REJECTED)
+        ).exclude(status=Booking.BookingStatus.REJECTED).exclude(status=Booking.BookingStatus.CANCELLED)
 
         if overlapping.exists():
             raise serializers.ValidationError('These dates are already taken')
