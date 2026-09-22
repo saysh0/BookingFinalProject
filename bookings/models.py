@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from listings.models import Listing
+from django.db.models import Q, UniqueConstraint
 
 
 class Booking(models.Model):
@@ -38,8 +39,14 @@ class Booking(models.Model):
         return f'Booking: {self.listing.title}'
 
     class Meta:
-        unique_together = [['tenant', 'listing', 'date_from', 'date_to']]
         ordering = ['-date_from', '-date_to']
+        constraints = [
+            UniqueConstraint(
+                fields=['tenant', 'listing', 'date_from', 'date_to'],
+                condition=~Q(status='cancelled') & ~Q(status='rejected'),
+                name='unique_active_booking'
+            )
+        ]
         indexes = [
             models.Index(fields=['listing', 'date_from', 'date_to'], name='booking_listing_dates_idx'),
             models.Index(fields=['tenant', 'status'], name='booking_tenant_status_idx'),

@@ -120,3 +120,16 @@ class BookingTest(TestCase):
         self.client.force_authenticate(user=other_tenant)
         response = self.client.post(f'/api/bookings/{self.booking.id}/cancel/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_rebook_same_dates_after_cancellation(self):
+        """Можно забронировать те же даты после отмены / Can rebook same dates after cancellation."""
+        self.client.force_authenticate(user=self.tenant)
+        self.client.post(f'/api/bookings/{self.booking.id}/cancel/')
+        self.booking.refresh_from_db()
+        self.assertEqual(self.booking.status, Booking.BookingStatus.CANCELLED)
+        response = self.client.post('/api/bookings/', {
+            'listing_id': self.listing.id,
+            'date_from': str(datetime.date.today() + datetime.timedelta(days=5)),
+            'date_to': str(datetime.date.today() + datetime.timedelta(days=10)),
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
