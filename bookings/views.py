@@ -10,7 +10,6 @@ from bookings.serializers import BookingSerializer
 from users.permissions import IsTenantOrReadOnly
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.utils import timezone
-from __future__ import annotations
 
 @extend_schema(tags=['Bookings'])
 class BookingViewSet(viewsets.ModelViewSet):
