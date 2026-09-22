@@ -45,7 +45,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserCreateSerializer
         return UserSerializer
 
-    def get_permissions(self) -> list[Any]:
+    def get_permissions(self):
         """
         Регистрация доступна всем, остальное только авторизованным.
         Registration is open to all, rest requires authentication.

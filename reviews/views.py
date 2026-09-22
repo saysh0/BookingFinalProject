@@ -50,7 +50,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('You cannot create a review without a confirmed booking')
         serializer.save(author=self.request.user)
 
-    def get_permissions(self) -> list[Any]:
+    def get_permissions(self):
         """
         Просмотр доступен всем, изменение только владельцу отзыва.
         Viewing available to all, editing only to review owner.
