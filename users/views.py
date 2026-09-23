@@ -70,8 +70,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({
             'user': UserSerializer(user).data,
             'listings': ListingSerializer(user.listings.all(), many=True).data,
-            'bookings_as_tenant': BookingSerializer(user.bookings.all(), many=True).data,
-            'bookings_as_landlord': BookingSerializer(Booking.objects.filter(listing__owner=user), many=True).data,
+            'bookings': BookingSerializer(user.bookings.all(), many=True).data,
         })
 
 
