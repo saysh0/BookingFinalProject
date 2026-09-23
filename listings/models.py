@@ -2,6 +2,7 @@ from django.db import models
 from djmoney.models.fields import MoneyField
 from django.core.validators import MinValueValidator
 from django.conf import settings
+from djmoney.models.validators import MinMoneyValidator
 
 
 class Listing(models.Model):
@@ -25,7 +26,7 @@ class Listing(models.Model):
     title = models.CharField(max_length=60)
     location = models.CharField(max_length=60)
     description = models.TextField()
-    price = MoneyField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default_currency='EUR')
+    price = MoneyField(max_digits=10, decimal_places=2, validators=[MinMoneyValidator(0)], default_currency='EUR')
     rooms = models.PositiveIntegerField(default=1)
     housing_type = models.CharField(choices=HousingType.choices, max_length=15)
     is_active = models.BooleanField(default=True)
@@ -58,7 +59,7 @@ class ListingImage(models.Model):
     Stores listing photos with ordering support.
     Maximum 15 photos per listing.
     """
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='listings/')
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

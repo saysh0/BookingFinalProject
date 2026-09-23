@@ -11,6 +11,19 @@ location_validator = RegexValidator(
     message='Format: City, Street number. Example: Berlin, Hauptstraße 5'
 )
 
+class ListingImageSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор фотографий объявления / Listing image serializer.
+
+    Управляет загрузкой и порядком фотографий объявления.
+    Manages listing photo upload and ordering.
+    """
+
+    class Meta:
+        model = ListingImage
+        fields = ('id', 'image', 'order', 'created_at')
+        extra_kwargs = {'created_at': {'read_only': True}}
+
 
 class ListingSerializer(serializers.ModelSerializer):
     """
@@ -24,23 +37,9 @@ class ListingSerializer(serializers.ModelSerializer):
     """
     owner = UserSerializer(read_only=True)
     location = serializers.CharField(validators=[location_validator])
+    images = ListingImageSerializer(many=True, read_only=True, source='listingimage_set')
 
     class Meta:
         model = Listing
-        fields = ('id', 'owner', 'title', 'location', 'description', 'price', 'rooms', 'housing_type', 'is_active',
-                  'created_at')
-        extra_kwargs = {'created_at': {'read_only': True}}
-
-
-class ListingImageSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор фотографий объявления / Listing image serializer.
-
-    Управляет загрузкой и порядком фотографий объявления.
-    Manages listing photo upload and ordering.
-    """
-
-    class Meta:
-        model = ListingImage
-        fields = ('id', 'image', 'order', 'created_at')
+        fields = ('id', 'owner', 'title', 'location', 'description', 'price', 'rooms', 'housing_type', 'is_active', 'created_at', 'images')
         extra_kwargs = {'created_at': {'read_only': True}}
